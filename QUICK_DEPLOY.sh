@@ -1,0 +1,46 @@
+#!/bin/bash
+# 🚀 Homecook-Hub Quick Deploy Script
+
+echo "🍳 Homecook-Hub Deployment Assistant"
+echo "====================================="
+echo ""
+
+# Check if all files exist
+echo "📋 Checking files..."
+test -f "vercel.json" && echo "✅ vercel.json" || echo "❌ Missing vercel.json"
+test -f "vite.config.ts" && echo "✅ vite.config.ts" || echo "❌ Missing vite.config.ts"
+test -f "package.json" && echo "✅ package.json" || echo "❌ Missing package.json"
+test -d "src" && echo "✅ src/ directory" || echo "❌ Missing src/ directory"
+test -d "src/routes" && echo "✅ src/routes/ (file-based routing)" || echo "⚠️  Check src/routes structure"
+
+echo ""
+echo "📦 Verifying dependencies..."
+grep -q "@tanstack/react-router" package.json && echo "✅ @tanstack/react-router" || echo "❌ Missing router"
+grep -q "@tanstack/react-start" package.json && echo "✅ @tanstack/react-start" || echo "❌ Missing start"
+grep -q "vite" package.json && echo "✅ vite" || echo "❌ Missing vite"
+
+echo ""
+echo "🧪 Testing locally..."
+echo "Run these commands:"
+echo ""
+echo "  1. npm install"
+echo "  2. npm run build"
+echo "  3. npm run preview"
+echo ""
+echo "✅ If both commands complete without errors, you're ready to deploy!"
+
+echo ""
+echo "🚀 Deploying to Vercel..."
+echo ""
+echo "Option A (Automatic - Recommended):"
+echo "  1. Go to vercel.com/dashboard"
+echo "  2. Click 'Add New' → 'Project'"
+echo "  3. Select your homecook-hub GitHub repo"
+echo "  4. Click 'Deploy'"
+echo ""
+echo "Option B (CLI):"
+echo "  1. npm install -g vercel"
+echo "  2. vercel"
+echo "  3. Follow prompts"
+echo ""
+echo "✨ That's it! Your app will be live in ~2 minutes"
