@@ -1,6 +1,9 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
+import { useAuth } from "@/hooks/useAuth";
+import { useState } from "react";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -13,6 +16,26 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const { login } = useAuth();
+  const navigate = useNavigate({ from: "/login" });
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email || !password) {
+      toast.error("Veuillez remplir tous les champs");
+      return;
+    }
+
+    const isAdminLogin = email.trim().toLowerCase() === "admin@admin" && password === "123321";
+    const name = isAdminLogin ? "Admin" : email.split("@")[0];
+    const role = isAdminLogin ? "admin" : email.toLowerCase().includes("chef") ? "cuisinier" : "client";
+    login(email, name, role);
+    toast.success("Connexion réussie !");
+    navigate({ to: isAdminLogin ? "/admin" : "/" });
+  };
+
   return (
     <div className="min-h-screen">
       <Header />
@@ -20,12 +43,15 @@ function LoginPage() {
         <div className="rounded-3xl border border-border bg-card p-8 shadow-card">
           <h1 className="font-display text-3xl font-bold">Bon retour !</h1>
           <p className="mt-2 text-sm text-muted-foreground">Connectez-vous pour commander.</p>
+          <p className="mt-1 text-xs text-muted-foreground">Admin test: admin@admin / 123321</p>
 
-          <form className="mt-8 space-y-4" onSubmit={(e) => e.preventDefault()}>
+          <form className="mt-8 space-y-4" onSubmit={handleLogin}>
             <div>
               <label className="text-sm font-medium">Email</label>
               <input
                 type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="vous@email.com"
                 className="mt-1.5 w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none transition-smooth focus:border-primary"
               />
@@ -34,6 +60,8 @@ function LoginPage() {
               <label className="text-sm font-medium">Mot de passe</label>
               <input
                 type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 className="mt-1.5 w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none transition-smooth focus:border-primary"
               />

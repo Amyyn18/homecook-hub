@@ -14,6 +14,9 @@ import { Route as PanierRouteImport } from './routes/panier'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as InscriptionRouteImport } from './routes/inscription'
 import { Route as CuisinierRouteImport } from './routes/cuisinier'
+import { Route as CommandesRouteImport } from './routes/commandes'
+import { Route as AjouterPlatRouteImport } from './routes/ajouter-plat'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as PlatsIdRouteImport } from './routes/plats.$id'
 
@@ -42,6 +45,21 @@ const CuisinierRoute = CuisinierRouteImport.update({
   path: '/cuisinier',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CommandesRoute = CommandesRouteImport.update({
+  id: '/commandes',
+  path: '/commandes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AjouterPlatRoute = AjouterPlatRouteImport.update({
+  id: '/ajouter-plat',
+  path: '/ajouter-plat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -55,6 +73,9 @@ const PlatsIdRoute = PlatsIdRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/ajouter-plat': typeof AjouterPlatRoute
+  '/commandes': typeof CommandesRoute
   '/cuisinier': typeof CuisinierRoute
   '/inscription': typeof InscriptionRoute
   '/login': typeof LoginRoute
@@ -64,6 +85,9 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/ajouter-plat': typeof AjouterPlatRoute
+  '/commandes': typeof CommandesRoute
   '/cuisinier': typeof CuisinierRoute
   '/inscription': typeof InscriptionRoute
   '/login': typeof LoginRoute
@@ -74,6 +98,9 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin': typeof AdminRoute
+  '/ajouter-plat': typeof AjouterPlatRoute
+  '/commandes': typeof CommandesRoute
   '/cuisinier': typeof CuisinierRoute
   '/inscription': typeof InscriptionRoute
   '/login': typeof LoginRoute
@@ -85,6 +112,9 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/admin'
+    | '/ajouter-plat'
+    | '/commandes'
     | '/cuisinier'
     | '/inscription'
     | '/login'
@@ -94,6 +124,9 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/admin'
+    | '/ajouter-plat'
+    | '/commandes'
     | '/cuisinier'
     | '/inscription'
     | '/login'
@@ -103,6 +136,9 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/admin'
+    | '/ajouter-plat'
+    | '/commandes'
     | '/cuisinier'
     | '/inscription'
     | '/login'
@@ -113,6 +149,9 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminRoute: typeof AdminRoute
+  AjouterPlatRoute: typeof AjouterPlatRoute
+  CommandesRoute: typeof CommandesRoute
   CuisinierRoute: typeof CuisinierRoute
   InscriptionRoute: typeof InscriptionRoute
   LoginRoute: typeof LoginRoute
@@ -157,6 +196,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CuisinierRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/commandes': {
+      id: '/commandes'
+      path: '/commandes'
+      fullPath: '/commandes'
+      preLoaderRoute: typeof CommandesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ajouter-plat': {
+      id: '/ajouter-plat'
+      path: '/ajouter-plat'
+      fullPath: '/ajouter-plat'
+      preLoaderRoute: typeof AjouterPlatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -186,6 +246,9 @@ const PlatsRouteWithChildren = PlatsRoute._addFileChildren(PlatsRouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminRoute: AdminRoute,
+  AjouterPlatRoute: AjouterPlatRoute,
+  CommandesRoute: CommandesRoute,
   CuisinierRoute: CuisinierRoute,
   InscriptionRoute: InscriptionRoute,
   LoginRoute: LoginRoute,
@@ -195,3 +258,12 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

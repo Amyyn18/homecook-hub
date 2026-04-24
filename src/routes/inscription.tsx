@@ -1,8 +1,10 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { ChefHat, User } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/inscription")({
   head: () => ({
@@ -16,6 +18,24 @@ export const Route = createFileRoute("/inscription")({
 
 function InscriptionPage() {
   const [role, setRole] = useState<"client" | "cuisinier">("client");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const { login } = useAuth();
+  const navigate = useNavigate({ from: "/inscription" });
+
+  const handleSignup = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!name || !email || !password) {
+      toast.error("Veuillez remplir tous les champs");
+      return;
+    }
+
+    // Mock signup logic (just logs them in)
+    login(email, name, role);
+    toast.success(`Compte ${role} créé avec succès !`);
+    navigate({ to: "/" });
+  };
 
   return (
     <div className="min-h-screen">
@@ -46,11 +66,13 @@ function InscriptionPage() {
             ))}
           </div>
 
-          <form className="mt-6 space-y-4" onSubmit={(e) => e.preventDefault()}>
+          <form className="mt-6 space-y-4" onSubmit={handleSignup}>
             <div>
               <label className="text-sm font-medium">Nom complet</label>
               <input
                 type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
                 placeholder="Sami Ben Ali"
                 className="mt-1.5 w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none transition-smooth focus:border-primary"
               />
@@ -59,6 +81,8 @@ function InscriptionPage() {
               <label className="text-sm font-medium">Email</label>
               <input
                 type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
                 placeholder="vous@email.com"
                 className="mt-1.5 w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none transition-smooth focus:border-primary"
               />
@@ -75,6 +99,8 @@ function InscriptionPage() {
               <label className="text-sm font-medium">Mot de passe</label>
               <input
                 type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 className="mt-1.5 w-full rounded-xl border border-input bg-background px-4 py-3 text-sm outline-none transition-smooth focus:border-primary"
               />

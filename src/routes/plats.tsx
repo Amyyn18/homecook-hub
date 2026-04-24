@@ -3,9 +3,10 @@ import { useState, useEffect } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { DishCard } from "@/components/DishCard";
-import { dishes, categories } from "@/data/dishes";
+import { categories } from "@/data/dishes";
 import { regions } from "@/data/regions";
 import { Search, SlidersHorizontal, MapPin, X } from "lucide-react";
+import { useDishes } from "@/hooks/useDishes";
 
 type PlatsSearch = { q?: string; region?: string; cat?: string };
 
@@ -29,11 +30,14 @@ export const Route = createFileRoute("/plats")({
 function PlatsPage() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/plats" });
+  const preferredOrder = ["couscous-agneau", "riz-djerbien", "loubia", "kaak-warka", "makroudh", "ojja-merguez"];
+  const preferredRank = new Map(preferredOrder.map((id, index) => [id, index]));
 
   const [query, setQuery] = useState(search.q ?? "");
   const [cat, setCat] = useState(search.cat ?? "all");
   const [region, setRegion] = useState(search.region ?? "all");
-  const [sort, setSort] = useState<"note" | "prix-asc" | "prix-desc">("note");
+  const [sort, setSort] = useState<"featured" | "note" | "prix-asc" | "prix-desc">("featured");
+  const { dishes } = useDishes();
 
   // Sync URL → state when search params change (e.g., navigation from header)
   useEffect(() => {
@@ -67,6 +71,15 @@ function PlatsPage() {
     return true;
   });
   filtered = [...filtered].sort((a, b) => {
+    if (sort === "featured") {
+      const rankA = preferredRank.get(a.id);
+      const rankB = preferredRank.get(b.id);
+
+      if (rankA !== undefined && rankB !== undefined) return rankA - rankB;
+      if (rankA !== undefined) return -1;
+      if (rankB !== undefined) return 1;
+      return b.note - a.note;
+    }
     if (sort === "note") return b.note - a.note;
     if (sort === "prix-asc") return a.prix - b.prix;
     return b.prix - a.prix;
@@ -129,6 +142,7 @@ function PlatsPage() {
                 className="bg-transparent py-1.5 text-sm font-medium outline-none"
                 aria-label="Trier"
               >
+                <option value="featured">Ordre recommandé</option>
                 <option value="note">Mieux notés</option>
                 <option value="prix-asc">Prix croissant</option>
                 <option value="prix-desc">Prix décroissant</option>

@@ -1,9 +1,14 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
-import { getDish, dishes } from "@/data/dishes";
-import { Star, Clock, MapPin, ChefHat, ArrowLeft, ShoppingBag, ShieldCheck } from "lucide-react";
+import { addChefReview, getDish, getChefReviews } from "@/data/dishes";
+import { Star, Clock, MapPin, ChefHat, ArrowLeft, ShoppingBag, ShieldCheck, Check } from "lucide-react";
 import { DishCard } from "@/components/DishCard";
+import { useCart } from "@/hooks/useCart";
+import { useDishes } from "@/hooks/useDishes";
+import { toast } from "sonner";
+import React from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/plats/$id")({
   loader: ({ params }) => {
@@ -41,7 +46,50 @@ export const Route = createFileRoute("/plats/$id")({
 
 function DishDetail() {
   const { dish } = Route.useLoaderData();
+  const { dishes } = useDishes();
+  const { addItem } = useCart();
   const similar = dishes.filter((d) => d.id !== dish.id && d.categorie === dish.categorie).slice(0, 3);
+  const [quantity, setQuantity] = React.useState(1);
+  const [chefReviews, setChefReviews] = React.useState(() => getChefReviews(dish.cuisinier));
+  const [reviewName, setReviewName] = React.useState("");
+  const [reviewRating, setReviewRating] = React.useState(5);
+  const [reviewComment, setReviewComment] = React.useState("");
+
+  React.useEffect(() => {
+    setChefReviews(getChefReviews(dish.cuisinier));
+  }, [dish.cuisinier]);
+
+  const handleAddToCart = () => {
+    addItem(dish, quantity);
+    toast.success(`${quantity}x ${dish.nom} ajouté au panier`, {
+      icon: <Check className="h-4 w-4 text-success" />,
+      action: {
+        label: "Voir panier",
+        onClick: () => window.location.href = "/panier"
+      }
+    });
+  };
+
+  const handleAddReview = () => {
+    if (!reviewName.trim()) {
+      toast.error("Veuillez saisir votre nom.");
+      return;
+    }
+    if (!reviewComment.trim()) {
+      toast.error("Veuillez écrire votre avis.");
+      return;
+    }
+    addChefReview(dish.cuisinier, {
+      clientName: reviewName.trim(),
+      rating: reviewRating,
+      comment: reviewComment.trim(),
+    });
+    setChefReviews(getChefReviews(dish.cuisinier));
+    setReviewName("");
+    setReviewRating(5);
+    setReviewComment("");
+    toast.success("Merci, votre avis a été ajouté.");
+  };
 
   return (
     <div className="min-h-screen">
@@ -124,6 +172,80 @@ function DishDetail() {
                     <ShieldCheck className="h-4 w-4 text-success" />
                   </div>
                   <p className="text-sm text-muted-foreground">{dish.cuisinierBio}</p>
+                <Dialog>
+                  <DialogTrigger asChild>
+                    <button className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-primary hover:underline">
+                      <Star className="h-4 w-4 fill-primary text-primary" />
+                      {dish.note} ({dish.avis} avis) - Voir les avis clients
+                    </button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-lg">
+                    <DialogHeader>
+                      <DialogTitle>Avis clients - {dish.cuisinier}</DialogTitle>
+                    </DialogHeader>
+                    <div className="max-h-96 space-y-3 overflow-y-auto pr-1">
+                      {chefReviews.length === 0 ? (
+                        <p className="text-sm text-muted-foreground">Pas encore d'avis pour ce cuisinier.</p>
+                      ) : (
+                        chefReviews.map((review) => (
+                          <div key={review.id} className="rounded-xl border border-border bg-background p-3">
+                            <div className="flex items-center justify-between">
+                              <p className="font-medium">{review.clientName}</p>
+                              <span className="text-xs text-muted-foreground">
+                                {new Date(review.date).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <div className="mt-1 flex items-center gap-1 text-sm font-medium text-primary">
+                              <Star className="h-4 w-4 fill-primary text-primary" />
+                              {review.rating}/5
+                            </div>
+                            <p className="mt-1 text-sm text-muted-foreground">{review.comment}</p>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                    <div className="mt-4 border-t border-border pt-4">
+                      <h4 className="font-medium">Ajouter un avis</h4>
+                      <div className="mt-3 space-y-3">
+                        <input
+                          type="text"
+                          value={reviewName}
+                          onChange={(e) => setReviewName(e.target.value)}
+                          placeholder="Votre nom"
+                          className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm outline-none transition-smooth focus:border-primary"
+                        />
+                        <div>
+                          <label className="text-sm text-muted-foreground">Votre note</label>
+                          <select
+                            value={reviewRating}
+                            onChange={(e) => setReviewRating(Number(e.target.value))}
+                            className="mt-1 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm outline-none transition-smooth focus:border-primary"
+                          >
+                            <option value={5}>5/5</option>
+                            <option value={4}>4/5</option>
+                            <option value={3}>3/5</option>
+                            <option value={2}>2/5</option>
+                            <option value={1}>1/5</option>
+                          </select>
+                        </div>
+                        <textarea
+                          value={reviewComment}
+                          onChange={(e) => setReviewComment(e.target.value)}
+                          placeholder="Écrivez votre avis..."
+                          rows={3}
+                          className="w-full rounded-xl border border-input bg-background px-3 py-2 text-sm outline-none transition-smooth focus:border-primary"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleAddReview}
+                          className="h-10 rounded-full bg-gradient-warm px-5 text-sm font-semibold text-primary-foreground shadow-warm transition-smooth hover:opacity-90"
+                        >
+                          Envoyer l'avis
+                        </button>
+                      </div>
+                    </div>
+                  </DialogContent>
+                </Dialog>
                 </div>
               </div>
             </div>
@@ -134,13 +256,30 @@ function DishDetail() {
                 <p className="text-xs uppercase tracking-wider text-muted-foreground">Prix</p>
                 <p className="font-display text-3xl font-bold text-primary">{dish.prix} DT</p>
               </div>
-              <Link
-                to="/panier"
-                className="inline-flex h-12 items-center gap-2 rounded-full bg-gradient-warm px-7 text-sm font-semibold text-primary-foreground shadow-warm transition-smooth hover:opacity-90"
-              >
-                <ShoppingBag className="h-4 w-4" />
-                Commander
-              </Link>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 rounded-full border border-border bg-background px-3 py-1 text-sm font-medium">
+                  <button
+                    onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    -
+                  </button>
+                  <span className="w-4 text-center">{quantity}</span>
+                  <button
+                    onClick={() => setQuantity(quantity + 1)}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    +
+                  </button>
+                </div>
+                <button
+                  onClick={handleAddToCart}
+                  className="inline-flex h-12 items-center gap-2 rounded-full bg-gradient-warm px-7 text-sm font-semibold text-primary-foreground shadow-warm transition-smooth hover:opacity-90"
+                >
+                  <ShoppingBag className="h-4 w-4" />
+                  Ajouter
+                </button>
+              </div>
             </div>
           </div>
         </div>
