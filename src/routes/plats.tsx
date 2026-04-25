@@ -7,13 +7,13 @@ import { dishes, categories } from "@/data/dishes";
 import { regions } from "@/data/regions";
 import { Search, SlidersHorizontal, MapPin, X } from "lucide-react";
 
-type PlatsSearch = { q: string; region: string; cat: string };
+type PlatsSearch = { q?: string; region?: string; cat?: string };
 
 export const Route = createFileRoute("/plats")({
   validateSearch: (search: Record<string, unknown>): PlatsSearch => ({
-    q: typeof search.q === "string" ? search.q : "",
-    region: typeof search.region === "string" ? search.region : "all",
-    cat: typeof search.cat === "string" ? search.cat : "all",
+    q: typeof search.q === "string" && search.q ? search.q : undefined,
+    region: typeof search.region === "string" && search.region !== "all" ? search.region : undefined,
+    cat: typeof search.cat === "string" && search.cat !== "all" ? search.cat : undefined,
   }),
   head: () => ({
     meta: [
