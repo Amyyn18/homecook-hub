@@ -63,23 +63,44 @@ function HomePage() {
 
           {/* Search */}
           <form
-            onSubmit={(e) => e.preventDefault()}
-            className="mt-8 flex w-full max-w-2xl items-center gap-2 rounded-full border border-border bg-card p-2 shadow-card"
+            onSubmit={(e) => {
+              e.preventDefault();
+              navigate({ to: "/plats", search: { q, region, cat: "all" } });
+            }}
+            className="mt-8 flex w-full max-w-2xl flex-col gap-2 rounded-3xl border border-border bg-card p-2 shadow-card sm:flex-row sm:items-center sm:rounded-full"
           >
             <div className="flex flex-1 items-center gap-3 px-4">
               <Search className="h-5 w-5 text-muted-foreground" />
               <input
                 type="text"
-                placeholder="Que souhaitez-vous manger aujourd'hui ?"
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Plat ou nom du cuisinier..."
                 className="flex-1 bg-transparent py-2 text-base outline-none placeholder:text-muted-foreground"
               />
             </div>
-            <Link
-              to="/plats"
-              className="flex h-12 items-center rounded-full bg-gradient-warm px-6 text-sm font-semibold text-primary-foreground shadow-warm transition-smooth hover:opacity-90"
+            <div className="flex items-center gap-2 border-border px-3 sm:border-l">
+              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <select
+                value={region}
+                onChange={(e) => setRegion(e.target.value)}
+                className="bg-transparent py-2 text-sm font-medium outline-none"
+                aria-label="Région"
+              >
+                <option value="all">Toute la Tunisie</option>
+                {regions.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <button
+              type="submit"
+              className="flex h-12 items-center justify-center rounded-full bg-gradient-warm px-6 text-sm font-semibold text-primary-foreground shadow-warm transition-smooth hover:opacity-90"
             >
               Rechercher
-            </Link>
+            </button>
           </form>
 
           <div className="mt-10 flex flex-wrap items-center gap-8 text-sm">
