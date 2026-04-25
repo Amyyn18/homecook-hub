@@ -1,12 +1,22 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { DishCard } from "@/components/DishCard";
 import { dishes, categories } from "@/data/dishes";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { regions } from "@/data/regions";
+import { Search, SlidersHorizontal, MapPin, X } from "lucide-react";
+
+const searchSchema = z.object({
+  q: fallback(z.string(), "").default(""),
+  region: fallback(z.string(), "all").default("all"),
+  cat: fallback(z.string(), "all").default("all"),
+});
 
 export const Route = createFileRoute("/plats")({
+  validateSearch: zodValidator(searchSchema),
   head: () => ({
     meta: [
       { title: "Tous les plats — Diary" },
@@ -19,13 +29,39 @@ export const Route = createFileRoute("/plats")({
 });
 
 function PlatsPage() {
-  const [query, setQuery] = useState("");
-  const [cat, setCat] = useState("all");
+  const search = Route.useSearch();
+  const navigate = useNavigate({ from: "/plats" });
+
+  const [query, setQuery] = useState(search.q);
+  const [cat, setCat] = useState(search.cat);
+  const [region, setRegion] = useState(search.region);
   const [sort, setSort] = useState<"note" | "prix-asc" | "prix-desc">("note");
 
+  // Sync URL → state when search params change (e.g., navigation from header)
+  useEffect(() => {
+    setQuery(search.q);
+    setCat(search.cat);
+    setRegion(search.region);
+  }, [search.q, search.cat, search.region]);
+
+  // Persist filter changes to URL
+  useEffect(() => {
+    navigate({
+      search: { q: query, cat, region },
+      replace: true,
+    });
+  }, [query, cat, region, navigate]);
+
+  const q = query.trim().toLowerCase();
   let filtered = dishes.filter((d) => {
     if (cat !== "all" && d.categorie !== cat) return false;
-    if (query && !d.nom.toLowerCase().includes(query.toLowerCase())) return false;
+    if (region !== "all" && d.ville !== region) return false;
+    if (q) {
+      const matchNom = d.nom.toLowerCase().includes(q);
+      const matchChef = d.cuisinier.toLowerCase().includes(q);
+      const matchDesc = d.description.toLowerCase().includes(q);
+      if (!matchNom && !matchChef && !matchDesc) return false;
+    }
     return true;
   });
   filtered = [...filtered].sort((a, b) => {
