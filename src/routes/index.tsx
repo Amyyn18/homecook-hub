@@ -1,9 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useState } from "react";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { DishCard } from "@/components/DishCard";
 import { dishes, categories } from "@/data/dishes";
-import { Search, ChefHat, Truck, Heart, ArrowRight, Star } from "lucide-react";
+import { regions } from "@/data/regions";
+import { Search, ChefHat, Truck, Heart, ArrowRight, Star, MapPin } from "lucide-react";
 import heroImg from "@/assets/hero-food.jpg";
 
 export const Route = createFileRoute("/")({
@@ -20,6 +22,9 @@ export const Route = createFileRoute("/")({
 
 function HomePage() {
   const popular = dishes.slice(0, 6);
+  const navigate = useNavigate();
+  const [q, setQ] = useState("");
+  const [region, setRegion] = useState("all");
 
   return (
     <div className="min-h-screen">
