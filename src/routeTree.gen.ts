@@ -9,38 +9,154 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as PlatsRouteImport } from './routes/plats'
+import { Route as PanierRouteImport } from './routes/panier'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as InscriptionRouteImport } from './routes/inscription'
+import { Route as CuisinierRouteImport } from './routes/cuisinier'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as PlatsIdRouteImport } from './routes/plats.$id'
 
+const PlatsRoute = PlatsRouteImport.update({
+  id: '/plats',
+  path: '/plats',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PanierRoute = PanierRouteImport.update({
+  id: '/panier',
+  path: '/panier',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InscriptionRoute = InscriptionRouteImport.update({
+  id: '/inscription',
+  path: '/inscription',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CuisinierRoute = CuisinierRouteImport.update({
+  id: '/cuisinier',
+  path: '/cuisinier',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PlatsIdRoute = PlatsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => PlatsRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cuisinier': typeof CuisinierRoute
+  '/inscription': typeof InscriptionRoute
+  '/login': typeof LoginRoute
+  '/panier': typeof PanierRoute
+  '/plats': typeof PlatsRouteWithChildren
+  '/plats/$id': typeof PlatsIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cuisinier': typeof CuisinierRoute
+  '/inscription': typeof InscriptionRoute
+  '/login': typeof LoginRoute
+  '/panier': typeof PanierRoute
+  '/plats': typeof PlatsRouteWithChildren
+  '/plats/$id': typeof PlatsIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/cuisinier': typeof CuisinierRoute
+  '/inscription': typeof InscriptionRoute
+  '/login': typeof LoginRoute
+  '/panier': typeof PanierRoute
+  '/plats': typeof PlatsRouteWithChildren
+  '/plats/$id': typeof PlatsIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/cuisinier'
+    | '/inscription'
+    | '/login'
+    | '/panier'
+    | '/plats'
+    | '/plats/$id'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/cuisinier'
+    | '/inscription'
+    | '/login'
+    | '/panier'
+    | '/plats'
+    | '/plats/$id'
+  id:
+    | '__root__'
+    | '/'
+    | '/cuisinier'
+    | '/inscription'
+    | '/login'
+    | '/panier'
+    | '/plats'
+    | '/plats/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  CuisinierRoute: typeof CuisinierRoute
+  InscriptionRoute: typeof InscriptionRoute
+  LoginRoute: typeof LoginRoute
+  PanierRoute: typeof PanierRoute
+  PlatsRoute: typeof PlatsRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/plats': {
+      id: '/plats'
+      path: '/plats'
+      fullPath: '/plats'
+      preLoaderRoute: typeof PlatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/panier': {
+      id: '/panier'
+      path: '/panier'
+      fullPath: '/panier'
+      preLoaderRoute: typeof PanierRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/inscription': {
+      id: '/inscription'
+      path: '/inscription'
+      fullPath: '/inscription'
+      preLoaderRoute: typeof InscriptionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cuisinier': {
+      id: '/cuisinier'
+      path: '/cuisinier'
+      fullPath: '/cuisinier'
+      preLoaderRoute: typeof CuisinierRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -48,11 +164,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/plats/$id': {
+      id: '/plats/$id'
+      path: '/$id'
+      fullPath: '/plats/$id'
+      preLoaderRoute: typeof PlatsIdRouteImport
+      parentRoute: typeof PlatsRoute
+    }
   }
 }
 
+interface PlatsRouteChildren {
+  PlatsIdRoute: typeof PlatsIdRoute
+}
+
+const PlatsRouteChildren: PlatsRouteChildren = {
+  PlatsIdRoute: PlatsIdRoute,
+}
+
+const PlatsRouteWithChildren = PlatsRoute._addFileChildren(PlatsRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  CuisinierRoute: CuisinierRoute,
+  InscriptionRoute: InscriptionRoute,
+  LoginRoute: LoginRoute,
+  PanierRoute: PanierRoute,
+  PlatsRoute: PlatsRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
