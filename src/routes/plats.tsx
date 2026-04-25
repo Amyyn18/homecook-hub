@@ -1,7 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { zodValidator, fallback } from "@tanstack/zod-adapter";
-import { z } from "zod";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { DishCard } from "@/components/DishCard";
@@ -9,14 +7,14 @@ import { dishes, categories } from "@/data/dishes";
 import { regions } from "@/data/regions";
 import { Search, SlidersHorizontal, MapPin, X } from "lucide-react";
 
-const searchSchema = z.object({
-  q: fallback(z.string(), "").default(""),
-  region: fallback(z.string(), "all").default("all"),
-  cat: fallback(z.string(), "all").default("all"),
-});
+type PlatsSearch = { q: string; region: string; cat: string };
 
 export const Route = createFileRoute("/plats")({
-  validateSearch: zodValidator(searchSchema),
+  validateSearch: (search: Record<string, unknown>): PlatsSearch => ({
+    q: typeof search.q === "string" ? search.q : "",
+    region: typeof search.region === "string" ? search.region : "all",
+    cat: typeof search.cat === "string" ? search.cat : "all",
+  }),
   head: () => ({
     meta: [
       { title: "Tous les plats — Diary" },
