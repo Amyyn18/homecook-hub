@@ -1,7 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
-import { zodValidator, fallback } from "@tanstack/zod-adapter";
-import { z } from "zod";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { DishCard } from "@/components/DishCard";
@@ -9,14 +7,14 @@ import { dishes, categories } from "@/data/dishes";
 import { regions } from "@/data/regions";
 import { Search, SlidersHorizontal, MapPin, X } from "lucide-react";
 
-const searchSchema = z.object({
-  q: fallback(z.string(), "").default(""),
-  region: fallback(z.string(), "all").default("all"),
-  cat: fallback(z.string(), "all").default("all"),
-});
+type PlatsSearch = { q?: string; region?: string; cat?: string };
 
 export const Route = createFileRoute("/plats")({
-  validateSearch: zodValidator(searchSchema),
+  validateSearch: (search: Record<string, unknown>): PlatsSearch => ({
+    q: typeof search.q === "string" && search.q ? search.q : undefined,
+    region: typeof search.region === "string" && search.region !== "all" ? search.region : undefined,
+    cat: typeof search.cat === "string" && search.cat !== "all" ? search.cat : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Tous les plats — Diary" },
@@ -32,22 +30,26 @@ function PlatsPage() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/plats" });
 
-  const [query, setQuery] = useState(search.q);
-  const [cat, setCat] = useState(search.cat);
-  const [region, setRegion] = useState(search.region);
+  const [query, setQuery] = useState(search.q ?? "");
+  const [cat, setCat] = useState(search.cat ?? "all");
+  const [region, setRegion] = useState(search.region ?? "all");
   const [sort, setSort] = useState<"note" | "prix-asc" | "prix-desc">("note");
 
   // Sync URL → state when search params change (e.g., navigation from header)
   useEffect(() => {
-    setQuery(search.q);
-    setCat(search.cat);
-    setRegion(search.region);
+    setQuery(search.q ?? "");
+    setCat(search.cat ?? "all");
+    setRegion(search.region ?? "all");
   }, [search.q, search.cat, search.region]);
 
   // Persist filter changes to URL
   useEffect(() => {
     navigate({
-      search: { q: query, cat, region },
+      search: {
+        q: query || undefined,
+        cat: cat !== "all" ? cat : undefined,
+        region: region !== "all" ? region : undefined,
+      },
       replace: true,
     });
   }, [query, cat, region, navigate]);

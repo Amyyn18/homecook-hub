@@ -65,7 +65,13 @@ function HomePage() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              navigate({ to: "/plats", search: { q, region, cat: "all" } });
+              navigate({
+                to: "/plats",
+                search: {
+                  q: q || undefined,
+                  region: region !== "all" ? region : undefined,
+                },
+              });
             }}
             className="mt-8 flex w-full max-w-2xl flex-col gap-2 rounded-3xl border border-border bg-card p-2 shadow-card sm:flex-row sm:items-center sm:rounded-full"
           >
