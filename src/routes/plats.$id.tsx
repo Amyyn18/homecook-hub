@@ -97,7 +97,7 @@ function DishDetail() {
             <div className="mt-8">
               <h2 className="font-display text-lg font-semibold">Ingrédients</h2>
               <div className="mt-3 flex flex-wrap gap-2">
-                {dish.ingredients.map((ing) => (
+                {dish.ingredients.map((ing: string) => (
                   <span key={ing} className="rounded-full bg-secondary px-3 py-1 text-sm">{ing}</span>
                 ))}
               </div>

@@ -1,12 +1,22 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useState, useEffect } from "react";
+import { zodValidator, fallback } from "@tanstack/zod-adapter";
+import { z } from "zod";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { DishCard } from "@/components/DishCard";
 import { dishes, categories } from "@/data/dishes";
-import { Search, SlidersHorizontal } from "lucide-react";
+import { regions } from "@/data/regions";
+import { Search, SlidersHorizontal, MapPin, X } from "lucide-react";
+
+const searchSchema = z.object({
+  q: fallback(z.string(), "").default(""),
+  region: fallback(z.string(), "all").default("all"),
+  cat: fallback(z.string(), "all").default("all"),
+});
 
 export const Route = createFileRoute("/plats")({
+  validateSearch: zodValidator(searchSchema),
   head: () => ({
     meta: [
       { title: "Tous les plats — Diary" },
@@ -19,13 +29,39 @@ export const Route = createFileRoute("/plats")({
 });
 
 function PlatsPage() {
-  const [query, setQuery] = useState("");
-  const [cat, setCat] = useState("all");
+  const search = Route.useSearch();
+  const navigate = useNavigate({ from: "/plats" });
+
+  const [query, setQuery] = useState(search.q);
+  const [cat, setCat] = useState(search.cat);
+  const [region, setRegion] = useState(search.region);
   const [sort, setSort] = useState<"note" | "prix-asc" | "prix-desc">("note");
 
+  // Sync URL → state when search params change (e.g., navigation from header)
+  useEffect(() => {
+    setQuery(search.q);
+    setCat(search.cat);
+    setRegion(search.region);
+  }, [search.q, search.cat, search.region]);
+
+  // Persist filter changes to URL
+  useEffect(() => {
+    navigate({
+      search: { q: query, cat, region },
+      replace: true,
+    });
+  }, [query, cat, region, navigate]);
+
+  const q = query.trim().toLowerCase();
   let filtered = dishes.filter((d) => {
     if (cat !== "all" && d.categorie !== cat) return false;
-    if (query && !d.nom.toLowerCase().includes(query.toLowerCase())) return false;
+    if (region !== "all" && d.ville !== region) return false;
+    if (q) {
+      const matchNom = d.nom.toLowerCase().includes(q);
+      const matchChef = d.cuisinier.toLowerCase().includes(q);
+      const matchDesc = d.description.toLowerCase().includes(q);
+      if (!matchNom && !matchChef && !matchDesc) return false;
+    }
     return true;
   });
   filtered = [...filtered].sort((a, b) => {
@@ -53,9 +89,35 @@ function PlatsPage() {
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Rechercher un plat..."
+                placeholder="Rechercher un plat ou un cuisinier..."
                 className="flex-1 bg-transparent py-2 outline-none placeholder:text-muted-foreground"
               />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  className="rounded-full p-1 text-muted-foreground transition-smooth hover:bg-muted hover:text-foreground"
+                  aria-label="Effacer la recherche"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+            <div className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 shadow-soft">
+              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <select
+                value={region}
+                onChange={(e) => setRegion(e.target.value)}
+                className="bg-transparent py-1.5 text-sm font-medium outline-none"
+                aria-label="Filtrer par région"
+              >
+                <option value="all">Toute la Tunisie</option>
+                {regions.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 shadow-soft">
               <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
@@ -63,6 +125,7 @@ function PlatsPage() {
                 value={sort}
                 onChange={(e) => setSort(e.target.value as typeof sort)}
                 className="bg-transparent py-1.5 text-sm font-medium outline-none"
+                aria-label="Trier"
               >
                 <option value="note">Mieux notés</option>
                 <option value="prix-asc">Prix croissant</option>
@@ -87,6 +150,34 @@ function PlatsPage() {
               </button>
             ))}
           </div>
+
+          {(query || region !== "all" || cat !== "all") && (
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Filtres actifs :</span>
+              {query && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-primary">
+                  « {query} »
+                </span>
+              )}
+              {region !== "all" && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-primary">
+                  <MapPin className="h-3 w-3" />
+                  {region}
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setQuery("");
+                  setRegion("all");
+                  setCat("all");
+                }}
+                className="ml-2 text-xs font-medium text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+              >
+                Réinitialiser
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
