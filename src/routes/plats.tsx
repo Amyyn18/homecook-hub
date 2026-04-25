@@ -89,9 +89,35 @@ function PlatsPage() {
               <input
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Rechercher un plat..."
+                placeholder="Rechercher un plat ou un cuisinier..."
                 className="flex-1 bg-transparent py-2 outline-none placeholder:text-muted-foreground"
               />
+              {query && (
+                <button
+                  type="button"
+                  onClick={() => setQuery("")}
+                  className="rounded-full p-1 text-muted-foreground transition-smooth hover:bg-muted hover:text-foreground"
+                  aria-label="Effacer la recherche"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              )}
+            </div>
+            <div className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 shadow-soft">
+              <MapPin className="h-4 w-4 text-muted-foreground" />
+              <select
+                value={region}
+                onChange={(e) => setRegion(e.target.value)}
+                className="bg-transparent py-1.5 text-sm font-medium outline-none"
+                aria-label="Filtrer par région"
+              >
+                <option value="all">Toute la Tunisie</option>
+                {regions.map((r) => (
+                  <option key={r} value={r}>
+                    {r}
+                  </option>
+                ))}
+              </select>
             </div>
             <div className="flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 shadow-soft">
               <SlidersHorizontal className="h-4 w-4 text-muted-foreground" />
@@ -99,6 +125,7 @@ function PlatsPage() {
                 value={sort}
                 onChange={(e) => setSort(e.target.value as typeof sort)}
                 className="bg-transparent py-1.5 text-sm font-medium outline-none"
+                aria-label="Trier"
               >
                 <option value="note">Mieux notés</option>
                 <option value="prix-asc">Prix croissant</option>
@@ -123,6 +150,34 @@ function PlatsPage() {
               </button>
             ))}
           </div>
+
+          {(query || region !== "all" || cat !== "all") && (
+            <div className="mt-4 flex flex-wrap items-center gap-2 text-sm">
+              <span className="text-muted-foreground">Filtres actifs :</span>
+              {query && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-primary">
+                  « {query} »
+                </span>
+              )}
+              {region !== "all" && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-primary/10 px-3 py-1 text-primary">
+                  <MapPin className="h-3 w-3" />
+                  {region}
+                </span>
+              )}
+              <button
+                type="button"
+                onClick={() => {
+                  setQuery("");
+                  setRegion("all");
+                  setCat("all");
+                }}
+                className="ml-2 text-xs font-medium text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+              >
+                Réinitialiser
+              </button>
+            </div>
+          )}
         </div>
       </section>
 
